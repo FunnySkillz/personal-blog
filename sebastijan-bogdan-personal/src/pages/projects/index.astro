@@ -1,5 +1,10 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+let projects = await getCollection("projects");
+
+projects.sort((a, b) => Number(!!b.data.featured) - Number(!!a.data.featured));
 ---
 
 <BaseLayout
@@ -8,34 +13,26 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 >
   <section>
     <h1>Projects</h1>
+
     <p class="section-intro">
-      Selected work focused on backend reliability, architecture governance, and
-      engineering execution.
+      Selected work focused on backend reliability, architecture governance, and engineering execution.
     </p>
 
     <hr class="divider" />
-    <article class="listing-item">
-      <h2 style="margin-top:0;font-size:1.5rem;">
-        Core Transaction Routing Platform
-      </h2>
-      <p>
-        Built a service platform for routing high-volume transactions across
-        regional providers with deterministic failover behavior and end-to-end
-        observability.
-      </p>
-      <p class="muted">Go · Kafka · PostgreSQL · Terraform</p>
-    </article>
 
-    <hr class="divider" />
-    <article class="listing-item">
-      <h2 style="margin-top:0;font-size:1.5rem;">
-        Internal Engineering Standards Initiative
-      </h2>
-      <p>
-        Established architecture guidelines, deployment templates, and quality
-        gates to support maintainability across multiple backend teams.
-      </p>
-      <p class="muted">TypeScript · Kubernetes · GitHub Actions</p>
-    </article>
+    {projects.map((p) => (
+      <>
+        <article class="listing-item">
+          <h2 style="margin-top:0;font-size:1.5rem;">
+            <a href={`/projects/${p.slug}/`}>
+              {p.data.title}
+            </a>
+          </h2>
+          <p>{p.data.description}</p>
+          <p class="muted">{p.data.stack.join(" · ")}</p>
+        </article>
+        <hr class="divider" />
+      </>
+    ))}
   </section>
 </BaseLayout>
