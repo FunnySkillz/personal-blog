@@ -6,8 +6,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   title="Sebastijan Bogdan | Software Engineer"
   description="Full stack software engineer focused on scalable backend architecture and well-structured frontend systems."
 >
-  <section>
-    <h1>Sebastijan Bogdan</h1>
+  <section class="hero">
+    <h1 class="hero-title">Sebastijan Bogdan</h1>
 
     <p class="section-intro">
       Full Stack Software Engineer focused on scalable backend architecture and well-structured frontend systems.
@@ -41,3 +41,18 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     </p>
   </section>
 </BaseLayout>
+
+
+<style>
+  .hero-title {
+    font-size: clamp(2.2rem, 8vw, 2.8rem);
+    line-height: 1.25;
+  }
+
+  @media (min-width: 768px) {
+    .hero-title {
+      font-size: 3.25rem;
+      line-height: 1.2;
+    }
+  }
+</style>
