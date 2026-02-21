@@ -2,7 +2,6 @@
 title: Reliability as an Engineering Routine
 description: Reliability improves when teams treat incident learning and operational discipline as standard delivery work.
 date: 2025-08-18
-layout: ../../layouts/PostLayout.astro
 ---
 
 Reliability is rarely a single initiative. It is the result of repeated engineering habits.
