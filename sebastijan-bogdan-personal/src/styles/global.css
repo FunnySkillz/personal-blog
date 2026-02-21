@@ -47,7 +47,7 @@ img {
 main {
   width: min(100%, 720px);
   margin: 0 auto;
-  padding: 2rem 1.25rem 6rem;
+  padding: 2.25rem 1.25rem 6rem;
 }
 
 h1,
@@ -140,14 +140,11 @@ footer hr {
 
 @media (min-width: 768px) {
   main {
-    padding-top: 3.5rem;
+    padding: 5rem 1.5rem 6rem;
   }
-}
 
-@media (min-width: 1024px) {
-  main,
   footer {
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 }
