@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --bg: #fafafa;
+  --text-primary: #111111;
+  --text-body: #222222;
+  --text-muted: #6b7280;
+  --border-light: #e5e7eb;
+  --code-bg: #f3f4f6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text-body);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+body {
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+a:hover,
+a:focus-visible {
+  opacity: 0.65;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+main {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 5rem 1.5rem 6rem;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: clamp(2.625rem, 5vw, 3rem);
+  font-weight: 600;
+}
+
+h2 {
+  font-size: clamp(1.5rem, 3.5vw, 1.75rem);
+  font-weight: 600;
+  margin-top: 5rem;
+}
+
+p {
+  margin: 1.2rem 0;
+}
+
+small,
+.muted,
+time {
+  color: var(--text-muted);
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid var(--border-light);
+  margin: 1.5rem 0;
+}
+
+.section-intro {
+  color: var(--text-muted);
+  margin-top: 0.85rem;
+}
+
+.listing-item {
+  padding: 1.3rem 0;
+}
+
+.listing-item h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.listing-item p {
+  margin: 0.35rem 0;
+}
+
+.listing-item time {
+  font-size: 0.9rem;
+}
+
+code {
+  font-family: 'SFMono-Regular', SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+pre {
+  background: var(--code-bg);
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+}
+
+pre code {
+  background: transparent;
+}
+
+footer {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 0 1.5rem 2.5rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+footer hr {
+  border: 0;
+  border-top: 1px solid var(--border-light);
+  margin: 0 0 1.3rem;
+}

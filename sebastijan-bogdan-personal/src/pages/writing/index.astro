@@ -1,0 +1,29 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ContentList from "../../components/ContentList.astro";
+import { getCollection } from "astro:content";
+
+const posts = (await getCollection("blog", ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .map((post) => ({
+    href: `/writing/${post.slug}/`,
+    title: post.data.title,
+    description: post.data.description,
+    date: post.data.date.toISOString().slice(0, 10),
+  }));
+---
+
+<BaseLayout
+  title="Writing | Sebastijan Bogdan"
+  description="Notes on systems, architecture, and building maintainable software."
+>
+  <section>
+    <h1>Writing</h1>
+    <p class="section-intro">
+      Notes on systems, architecture, and building maintainable software.
+    </p>
+  </section>
+  <section>
+    <ContentList items={posts} />
+  </section>
+</BaseLayout>

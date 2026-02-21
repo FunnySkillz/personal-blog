@@ -1,0 +1,57 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ContentList from "../components/ContentList.astro";
+import { getCollection } from "astro:content";
+
+const posts = (await getCollection("blog", ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3)
+  .map((post) => ({
+    href: `/writing/${post.slug}/`,
+    title: post.data.title,
+    description: post.data.description,
+    date: post.data.date.toISOString().slice(0, 10),
+  }));
+
+const projects = [
+  {
+    href: "/projects",
+    title: "Core Transaction Routing Platform",
+    description:
+      "Led backend architecture for a multi-region transaction routing service with strict reliability and observability requirements.",
+    meta: "Go · Kafka · PostgreSQL · Terraform",
+    cta: "View details →",
+  },
+  {
+    href: "/projects",
+    title: "Internal Engineering Standards Initiative",
+    description:
+      "Defined service templates, deployment standards, and review workflows to improve consistency across engineering teams.",
+    meta: "TypeScript · GitHub Actions · Kubernetes",
+    cta: "View details →",
+  },
+];
+---
+
+<BaseLayout
+  title="Sebastijan Bogdan | Software Engineer"
+  description="Software Engineer focused on scalable backend systems and long-term maintainable architecture."
+>
+  <section>
+    <h1>Sebastijan Bogdan</h1>
+    <p class="section-intro">
+      Software Engineer focused on scalable backend systems and long-term
+      maintainable architecture.
+    </p>
+  </section>
+
+  <section>
+    <h2>Writing</h2>
+    <ContentList items={posts} />
+  </section>
+
+  <section>
+    <h2>Projects</h2>
+    <ContentList items={projects} />
+  </section>
+</BaseLayout>

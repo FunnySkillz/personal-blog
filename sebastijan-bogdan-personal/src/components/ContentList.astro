@@ -1,0 +1,37 @@
+---
+interface Item {
+  href: string;
+  title: string;
+  description: string;
+  date?: string;
+  meta?: string;
+  cta?: string;
+}
+
+interface Props {
+  items: Item[];
+}
+
+const { items } = Astro.props;
+---
+
+{
+  items.map((item, index) => (
+    <>
+      <article class="listing-item">
+        <h3>
+          <a href={item.href}>{item.title}</a>
+        </h3>
+        <p class="muted">{item.description}</p>
+        {item.meta && <p class="muted">{item.meta}</p>}
+        {item.date && <time datetime={item.date}>{item.date}</time>}
+        {item.cta && (
+          <p>
+            <a href={item.href}>{item.cta}</a>
+          </p>
+        )}
+      </article>
+      {index < items.length - 1 && <hr class="divider" />}
+    </>
+  ))
+}
