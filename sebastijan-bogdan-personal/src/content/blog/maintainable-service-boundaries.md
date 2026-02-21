@@ -2,7 +2,6 @@
 title: Designing Service Boundaries for Long-Term Maintainability
 description: A practical framework for defining backend service boundaries that remain stable as teams and requirements grow.
 date: 2025-11-02
-layout: ../../layouts/PostLayout.astro
 ---
 
 Service boundaries should optimize for change over time, not for an idealized diagram on day one.

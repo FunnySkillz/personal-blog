@@ -1,0 +1,51 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+const parseTimeline = (timeline) => {
+  const yearMatch = timeline.match(/\d{4}/g);
+  if (!yearMatch || yearMatch.length === 0) return null;
+  return Number(yearMatch[yearMatch.length - 1]);
+};
+
+const projects = (await getCollection("projects")).sort((a, b) => {
+  if (Boolean(a.data.featured) !== Boolean(b.data.featured)) {
+    return a.data.featured ? -1 : 1;
+  }
+
+  const aYear = parseTimeline(a.data.timeline);
+  const bYear = parseTimeline(b.data.timeline);
+
+  if (aYear === null || bYear === null) return 0;
+  return bYear - aYear;
+});
+---
+
+<BaseLayout
+  title="Projects | Sebastijan Bogdan"
+  description="Selected backend engineering and architecture case studies."
+>
+  <section>
+    <h1>Projects</h1>
+    <p class="section-intro">
+      Enterprise case studies focused on backend reliability, architecture governance,
+      and measurable engineering outcomes.
+    </p>
+
+    {projects.map((project, index) => (
+      <>
+        {index > 0 && <hr class="divider" />}
+        <article class="listing-item">
+          <h2>
+            <a href={`/projects/${project.slug}/`}>{project.data.title}</a>
+          </h2>
+          <p>{project.data.description}</p>
+          <p class="muted">
+            {project.data.role} · {project.data.ownership} · {project.data.timeline}
+          </p>
+          <p class="muted">{project.data.stack.join(" · ")}</p>
+        </article>
+      </>
+    ))}
+  </section>
+</BaseLayout>
