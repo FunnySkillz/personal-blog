@@ -46,7 +46,7 @@ const { title, description } = Astro.props;
   .nav-wrap {
     width: min(100%, 720px);
     margin: 0 auto;
-    padding: 1.5rem;
+    padding: 1.5rem 1.25rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -71,10 +71,23 @@ const { title, description } = Astro.props;
     margin: 0;
   }
 
-  @media (max-width: 640px) {
+  @media (max-width: 767px) {
     .nav-wrap {
       flex-direction: column;
       align-items: flex-start;
+      gap: 0.4rem;
+    }
+
+    .nav-links {
+      font-size: 0.95rem;
+      gap: 0.9rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .nav-wrap {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
     }
   }
 </style>

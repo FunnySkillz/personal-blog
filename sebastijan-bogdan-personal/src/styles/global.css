@@ -47,7 +47,7 @@ img {
 main {
   width: min(100%, 720px);
   margin: 0 auto;
-  padding: 5rem 1.5rem 6rem;
+  padding: 2.25rem 1.25rem 6rem;
 }
 
 h1,
@@ -126,7 +126,7 @@ pre code {
 footer {
   width: min(100%, 720px);
   margin: 0 auto;
-  padding: 0 1.5rem 2.5rem;
+  padding: 0 1.25rem 2.5rem;
   text-align: center;
   color: var(--text-muted);
   font-size: 0.9rem;
@@ -136,4 +136,15 @@ footer hr {
   border: 0;
   border-top: 1px solid var(--border-light);
   margin: 0 0 1.3rem;
+}
+
+@media (min-width: 768px) {
+  main {
+    padding: 5rem 1.5rem 6rem;
+  }
+
+  footer {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
 }
