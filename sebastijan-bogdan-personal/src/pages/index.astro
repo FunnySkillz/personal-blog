@@ -1,57 +1,42 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import ContentList from "../components/ContentList.astro";
-import { getCollection } from "astro:content";
-
-const posts = (await getCollection("blog"))
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .slice(0, 3)
-  .map((post) => ({
-    href: `/writing/${post.slug}/`,
-    title: post.data.title,
-    description: post.data.description,
-    date: post.data.pubDate.toISOString().slice(0, 10),
-  }));
-
-const projects = [
-  {
-    href: "/projects",
-    title: "Core Transaction Routing Platform",
-    description:
-      "Led backend architecture for a multi-region transaction routing service with strict reliability and observability requirements.",
-    meta: "Go · Kafka · PostgreSQL · Terraform",
-    cta: "View details →",
-  },
-  {
-    href: "/projects",
-    title: "Internal Engineering Standards Initiative",
-    description:
-      "Defined service templates, deployment standards, and review workflows to improve consistency across engineering teams.",
-    meta: "TypeScript · GitHub Actions · Kubernetes",
-    cta: "View details →",
-  },
-];
 ---
 
 <BaseLayout
   title="Sebastijan Bogdan | Software Engineer"
-  description="Software Engineer focused on scalable backend systems and long-term maintainable architecture."
+  description="Backend-focused software engineer building scalable and maintainable systems."
 >
   <section>
     <h1>Sebastijan Bogdan</h1>
+
     <p class="section-intro">
-      Software Engineer focused on scalable backend systems and long-term
-      maintainable architecture.
+      Software Engineer focused on scalable backend systems and long-term maintainable architecture.
     </p>
-  </section>
 
-  <section>
-    <h2>Writing</h2>
-    <ContentList items={posts} />
-  </section>
+    <p>
+      I design and implement backend systems that prioritize clarity, reliability, and long-term adaptability.
+      My work centers on well-defined service boundaries, predictable system behavior, and pragmatic engineering discipline.
+      I value solutions that remain understandable and resilient as teams and requirements evolve.
+    </p>
 
-  <section>
-    <h2>Projects</h2>
-    <ContentList items={projects} />
+    <hr class="divider" />
+
+    <h2>Focus Areas</h2>
+
+    <p><strong>Backend Architecture</strong><br />
+    Service boundaries, domain modeling, and API consistency.</p>
+
+    <p><strong>System Design</strong><br />
+    Scalability, integration patterns, and failure isolation.</p>
+
+    <p><strong>Reliability &amp; Maintainability</strong><br />
+    Observability, operational discipline, and long-term evolution.</p>
+
+    <hr class="divider" />
+
+    <p>
+      <a href="/writing/">Writing →</a><br />
+      <a href="/projects/">Projects →</a>
+    </p>
   </section>
 </BaseLayout>
