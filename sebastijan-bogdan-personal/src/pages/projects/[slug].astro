@@ -1,0 +1,52 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection, getEntry } from "astro:content";
+
+export async function getStaticPaths() {
+  const projects = await getCollection("projects");
+  return projects.map((p) => ({
+    params: { slug: p.slug }
+  }));
+}
+
+const { slug } = Astro.params;
+
+const project = await getEntry("projects", slug);
+if (!project) throw new Error(`Project not found: ${slug}`);
+
+const { Content } = await project.render();
+---
+
+<BaseLayout
+  title={`${project.data.title} | Sebastijan Bogdan`}
+  description={project.data.description}
+>
+  <article class="post-content">
+    <h1>{project.data.title}</h1>
+
+    <p class="muted">
+      {project.data.role} · {project.data.ownership} · {project.data.timeline}
+    </p>
+
+    <p class="muted">{project.data.stack.join(" · ")}</p>
+
+    {(project.data.githubUrl || project.data.liveUrl) && (
+      <p class="muted">
+        {project.data.githubUrl && <a href={project.data.githubUrl}>GitHub</a>}
+        {project.data.githubUrl && project.data.liveUrl && " · "}
+        {project.data.liveUrl && <a href={project.data.liveUrl}>Live</a>}
+      </p>
+    )}
+
+    <hr class="divider" />
+
+    <Content />
+  </article>
+</BaseLayout>
+
+<style>
+  .post-content {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+</style>

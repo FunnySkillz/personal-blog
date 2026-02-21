@@ -1,5 +1,4 @@
 ---
-import Nav from "../components/Nav.astro";
 import "../styles/global.css";
 
 interface Props {
@@ -19,13 +18,63 @@ const { title, description } = Astro.props;
     <title>{title}</title>
   </head>
   <body>
-    <Nav />
+    <header>
+      <nav class="nav-wrap" aria-label="Main navigation">
+        <a href="/" class="brand">Sebastijan Bogdan</a>
+        <div class="nav-links">
+          <a href="/writing">Writing</a>
+          <a href="/projects">Projects</a>
+          <a href="/about">About</a>
+        </div>
+      </nav>
+      <hr class="nav-divider" />
+    </header>
+
     <main>
       <slot />
     </main>
+
     <footer>
       <hr />
       <p>© 2026 Sebastijan Bogdan. All rights reserved.</p>
     </footer>
   </body>
 </html>
+
+
+<style>
+  .nav-wrap {
+    width: min(100%, 720px);
+    margin: 0 auto;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .brand {
+    font-weight: 500;
+    color: #111111;
+    letter-spacing: -0.01em;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 1.1rem;
+    color: #222222;
+  }
+
+  .nav-divider {
+    border: 0;
+    border-top: 1px solid #e5e7eb;
+    margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    .nav-wrap {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

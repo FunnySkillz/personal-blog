@@ -1,0 +1,58 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection, getEntry } from "astro:content";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog");
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const post = await getEntry("blog", slug);
+
+if (!post) {
+  throw new Error(`Post not found: ${slug}`);
+}
+
+const { Content } = await post.render();
+const postDate = post.data.pubDate.toISOString().slice(0, 10);
+---
+
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <article class="post-content">
+    <header>
+      <h1>{post.data.title}</h1>
+      <time datetime={postDate}>{postDate}</time>
+    </header>
+    <Content />
+  </article>
+</BaseLayout>
+
+<style>
+  .post-content {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 2.5rem;
+  }
+
+  time {
+    display: inline-block;
+    margin-top: 0.75rem;
+    font-size: 0.95rem;
+    color: #6b7280;
+  }
+
+  .post-content :global(p) {
+    margin: 1.4rem 0;
+  }
+
+  .post-content :global(h2) {
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+  }
+</style>

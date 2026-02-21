@@ -1,0 +1,38 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+let projects = await getCollection("projects");
+
+projects.sort((a, b) => Number(!!b.data.featured) - Number(!!a.data.featured));
+---
+
+<BaseLayout
+  title="Projects | Sebastijan Bogdan"
+  description="Selected backend engineering and architecture projects."
+>
+  <section>
+    <h1>Projects</h1>
+
+    <p class="section-intro">
+      Selected work focused on backend reliability, architecture governance, and engineering execution.
+    </p>
+
+    <hr class="divider" />
+
+    {projects.map((p) => (
+      <>
+        <article class="listing-item">
+          <h2 style="margin-top:0;font-size:1.5rem;">
+            <a href={`/projects/${p.slug}/`}>
+              {p.data.title}
+            </a>
+          </h2>
+          <p>{p.data.description}</p>
+          <p class="muted">{p.data.stack.join(" · ")}</p>
+        </article>
+        <hr class="divider" />
+      </>
+    ))}
+  </section>
+</BaseLayout>
