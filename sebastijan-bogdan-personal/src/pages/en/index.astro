@@ -1,0 +1,67 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Sebastijan Bogdan | Software Engineer"
+  description="Full stack software engineer focused on scalable backend architecture and well-structured frontend systems."
+>
+  <section class="hero">
+    <h1 class="hero-title">Sebastijan Bogdan</h1>
+
+    <p class="section-intro">
+      Full Stack Engineer focused on scalable systems and structural clarity.
+    </p>
+
+    <p>
+      I design and build full stack systems that prioritize clarity, reliability, and long-term structure. My work spans backend services, APIs, and frontend interfaces, with an emphasis on strong boundaries and predictable behavior. I optimize for change over time — not just delivery speed on day one.
+    </p>
+
+    <hr class="divider" />
+
+    <h2>Focus Areas</h2>
+
+    <p><strong>Backend Architecture</strong><br />
+    Service boundaries, domain modeling, API design, and operational visibility.</p>
+
+    <p><strong>Frontend Systems</strong><br />
+    Structured UI architecture, predictable state management, and maintainable component design.</p>
+
+    <p><strong>Reliability &amp; Maintainability</strong><br />
+    Observability, disciplined delivery practices, and systems that teams can evolve with confidence.</p>
+
+    <hr class="divider" />
+
+    <p>
+      <a href="/en/writing/">Writing →</a><br />
+      <a href="/en/projects/">Projects →</a>
+    </p>
+  </section>
+</BaseLayout>
+
+
+<style>
+  .hero-title {
+    font-size: clamp(2.2rem, 8vw, 3.25rem);
+    line-height: 1.1;
+  }
+
+  .hero .section-intro {
+    max-width: 38ch;
+    margin-bottom: 0.9rem;
+  }
+
+  .hero p {
+    margin: 1rem 0;
+  }
+
+  @media (min-width: 768px) {
+    .hero-title {
+      line-height: 1.08;
+    }
+
+    .hero .section-intro {
+      max-width: none;
+    }
+  }
+</style>

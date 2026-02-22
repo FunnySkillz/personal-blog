@@ -1,5 +1,5 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { getCollection, getEntry } from "astro:content";
 
 export async function getStaticPaths() {
@@ -34,7 +34,7 @@ const { Content } = await project.render();
       <p class="muted">
         {project.data.githubUrl && <a href={project.data.githubUrl}>GitHub</a>}
         {project.data.githubUrl && project.data.liveUrl && " · "}
-        {project.data.liveUrl && <a href={project.data.liveUrl}>Demo</a>}
+        {project.data.liveUrl && <a href={project.data.liveUrl}>Live</a>}
       </p>
     )}
 
