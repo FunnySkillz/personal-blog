@@ -94,6 +94,32 @@ a:focus-visible {
   box-shadow: 0 0 6px rgba(78, 167, 232, 0.16);
 }
 
+.home-cta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: color-mix(in srgb, var(--nav-accent) 78%, var(--text-primary) 22%);
+  font-weight: 500;
+}
+
+.home-cta-link .link-arrow {
+  color: color-mix(in srgb, var(--nav-accent) 96%, white 4%);
+  font-weight: 800;
+  font-size: 1.05em;
+  line-height: 1;
+  transform: translateY(-0.02em);
+}
+
+.home-cta-link:hover,
+.home-cta-link:focus-visible {
+  opacity: 1;
+}
+
+.home-cta-link:hover .link-arrow,
+.home-cta-link:focus-visible .link-arrow {
+  color: color-mix(in srgb, var(--nav-accent) 88%, white 12%);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .nav-link,
   .nav-link::after {

@@ -46,9 +46,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     <hr class="divider" />
 
-    <p>
-      <a href="/writing/">Schreiben →</a><br />
-      <a href="/projects/">Projekte →</a>
+    <p class="home-cta-links">
+      <a class="home-cta-link" href="/writing/">
+        Schreiben <span class="link-arrow" aria-hidden="true">&rarr;</span>
+      </a><br />
+      <a class="home-cta-link" href="/projects/">
+        Projekte <span class="link-arrow" aria-hidden="true">&rarr;</span>
+      </a>
     </p>
   </section>
 </BaseLayout>
@@ -78,3 +82,4 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
   }
 </style>
+
