@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import Nav from "../components/Nav.astro";
 
 interface Props {
   title: string;
@@ -9,21 +10,6 @@ interface Props {
 const { title, description } = Astro.props;
 const pathname = Astro.url.pathname;
 const isEnglish = pathname === "/en" || pathname.startsWith("/en/");
-const dePath = isEnglish
-  ? pathname.replace(/^\/en(?=\/|$)/, "") || "/"
-  : pathname;
-const enPath = isEnglish
-  ? pathname
-  : pathname === "/"
-    ? "/en/"
-    : `/en${pathname}`;
-
-const navPrefix = isEnglish ? "/en" : "";
-const labels = {
-  writing: isEnglish ? "Writing" : "Schreiben",
-  projects: isEnglish ? "Projects" : "Projekte",
-  about: isEnglish ? "About" : "Über"
-};
 ---
 
 <!doctype html>
@@ -35,22 +21,7 @@ const labels = {
     <title>{title}</title>
   </head>
   <body>
-    <header>
-      <nav class="nav-wrap" aria-label="Main navigation">
-        <a href={isEnglish ? "/en/" : "/"} class="brand">Sebastijan Bogdan</a>
-        <div class="nav-links">
-          <a href={`${navPrefix}/writing`}>{labels.writing}</a>
-          <a href={`${navPrefix}/projects`}>{labels.projects}</a>
-          <a href={`${navPrefix}/about`}>{labels.about}</a>
-        </div>
-        <div class="lang-switch" aria-label="Language switch">
-          <a href={dePath} aria-current={!isEnglish ? "page" : undefined}>DE</a>
-          <span>|</span>
-          <a href={enPath} aria-current={isEnglish ? "page" : undefined}>EN</a>
-        </div>
-      </nav>
-      <hr class="nav-divider" />
-    </header>
+    <Nav />
 
     <main>
       <slot />
@@ -62,66 +33,3 @@ const labels = {
     </footer>
   </body>
 </html>
-
-
-<style>
-  .nav-wrap {
-    width: min(100%, 720px);
-    margin: 0 auto;
-    padding: 1.5rem 1.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .brand {
-    font-weight: 500;
-    color: #111111;
-    letter-spacing: -0.01em;
-  }
-
-  .nav-links {
-    display: flex;
-    gap: 1.1rem;
-    color: #222222;
-  }
-
-  .lang-switch {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    color: #222222;
-  }
-
-  .lang-switch a[aria-current="page"] {
-    opacity: 0.55;
-    pointer-events: none;
-  }
-
-  .nav-divider {
-    border: 0;
-    border-top: 1px solid #e5e7eb;
-    margin: 0;
-  }
-
-  @media (max-width: 767px) {
-    .nav-wrap {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.4rem;
-    }
-
-    .nav-links {
-      font-size: 0.95rem;
-      gap: 0.9rem;
-    }
-  }
-
-  @media (min-width: 768px) {
-    .nav-wrap {
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
-    }
-  }
-</style>

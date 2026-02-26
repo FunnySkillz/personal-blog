@@ -2,7 +2,7 @@
 title: "FleetFuel – Structured Fleet & Expense Management"
 description: "A full-stack fleet management application for tracking vehicles, trips, and fuel expenses with tax-ready reporting and zero-cost infrastructure deployment."
 role: "Full-Stack Engineer"
-ownership: "sole contributor"
+ownership: "individual"
 timeline: "2025-2026"
 stack:
   - ".NET 8"
