@@ -25,7 +25,7 @@ const { locale, content } = Astro.props;
   <ContactAct content={content.contact} />
 </div>
 
-<script type="module">
+<script>
   import { initHomeScrollAnimations } from "../../scripts/useHomeScrollAnimations";
 
   const root = document.querySelector("[data-home-root]");
@@ -38,23 +38,43 @@ const { locale, content } = Astro.props;
       return "mobile";
     };
 
+    let currentBreakpoint = getBreakpoint();
     let animationHandle = initHomeScrollAnimations({
       root,
       reducedMotion: motionQuery.matches,
-      breakpoint: getBreakpoint()
+      breakpoint: currentBreakpoint
     });
 
-    const onPageHide = () => animationHandle.destroy();
-    const onMotionChange = () => {
+    const reinitialize = () => {
       animationHandle.destroy();
+      currentBreakpoint = getBreakpoint();
       animationHandle = initHomeScrollAnimations({
         root,
         reducedMotion: motionQuery.matches,
-        breakpoint: getBreakpoint()
+        breakpoint: currentBreakpoint
       });
+    };
+
+    const onPageHide = () => {
+      animationHandle.destroy();
+      motionQuery.removeEventListener("change", onMotionChange);
+      window.removeEventListener("resize", onResize);
+    };
+    const onMotionChange = () => reinitialize();
+
+    let resizeTimer = 0;
+    const onResize = () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        const nextBreakpoint = getBreakpoint();
+        if (nextBreakpoint !== currentBreakpoint) {
+          reinitialize();
+        }
+      }, 180);
     };
 
     window.addEventListener("pagehide", onPageHide, { once: true });
     motionQuery.addEventListener("change", onMotionChange);
+    window.addEventListener("resize", onResize);
   }
 </script>

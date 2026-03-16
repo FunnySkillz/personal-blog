@@ -7,33 +7,47 @@ interface Props {
 }
 
 const { content } = Astro.props;
+const labelTargets = ["backend", "architecture", "automation", "performance", "product"];
 ---
 
 <section id="act-hero" class="home-act act-hero" data-act="hero">
-  <div class="act-panel act-panel-hero">
-    <div class="act-content-col" data-parallax="0.03">
-      <p class="act-kicker" data-reveal>{content.actTitle}</p>
-      <h1 class="hero-title" data-reveal>{content.heading}</h1>
-      <p class="hero-role" data-reveal>{content.roles[0]}</p>
-      <p class="hero-role hero-role-alt" data-reveal>{content.roles[1]}</p>
-      <p class="hero-copy" data-reveal>{content.intro}</p>
-      <p class="hero-copy" data-reveal>{content.outro}</p>
-      <a href="#act-experience" class="system-cta" data-reveal>
+  <div class="act-panel act-panel-hero" data-scene-panel>
+    <div class="act-content-col" data-hero-text>
+      <p class="act-kicker" data-hero-text-node>{content.actTitle}</p>
+      <h1 class="hero-title" data-hero-text-node>{content.heading}</h1>
+      <p class="hero-role" data-hero-text-node>{content.roles[0]}</p>
+      <p class="hero-role hero-role-alt" data-hero-text-node>{content.roles[1]}</p>
+      <p class="hero-copy" data-hero-text-node>{content.intro}</p>
+      <p class="hero-copy" data-hero-text-node>{content.outro}</p>
+      <a href="#act-experience" class="system-cta" data-hero-text-node>
         {content.cta}
         <span aria-hidden="true">-></span>
       </a>
     </div>
 
-    <div class="hero-diagram-col" aria-hidden="true">
+    <div class="hero-diagram-col" aria-hidden="true" data-hero-scene>
       <TechnicalDiagram variant="hero" className="hero-diagram" />
       <ul class="hero-label-cluster" aria-hidden="true">
         {content.labels.map((label, index) => (
-          <li class="hero-label" data-reveal style={`--label-index:${index};`}>
+          <li
+            class="hero-label"
+            data-hero-label
+            data-target={labelTargets[index]}
+            style={`--label-index:${index};`}
+          >
             <span class="hero-label-dot" />
             <span>{label}</span>
           </li>
         ))}
       </ul>
+
+      <ol class="hero-stage-track" aria-hidden="true">
+        <li data-hero-stage-dot></li>
+        <li data-hero-stage-dot></li>
+        <li data-hero-stage-dot></li>
+        <li data-hero-stage-dot></li>
+        <li data-hero-stage-dot></li>
+      </ol>
     </div>
   </div>
 </section>

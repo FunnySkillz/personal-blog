@@ -10,16 +10,16 @@ const { content } = Astro.props;
 ---
 
 <section id="act-toolbox" class="home-act act-toolbox" data-act="toolbox">
-  <div class="act-panel act-panel-toolbox">
+  <div class="act-panel act-panel-toolbox" data-scene-panel>
     <header class="act-header">
       <p class="act-kicker" data-reveal>{content.actTitle}</p>
       <h2 class="act-title" data-reveal>{content.heading}</h2>
       <p class="act-intro" data-reveal>{content.intro}</p>
     </header>
 
-    <div class="toolbox-board" data-node>
+    <div class="toolbox-board" data-node data-toolbox-scene>
       {content.groups.map((group, index) => (
-        <article class="toolbox-group" data-reveal style={`--group-index:${index};`}>
+        <article class="toolbox-group" data-reveal data-tool-zone style={`--group-index:${index};`}>
           <h3>{group.title}</h3>
           <ul>
             {group.tools.map((tool) => (
@@ -28,6 +28,19 @@ const { content } = Astro.props;
           </ul>
         </article>
       ))}
+
+      <svg
+        class="toolbox-trace-layer"
+        viewBox="0 0 960 480"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path data-tool-trace data-line-draw d="M188 132H772V348H188V132Z" />
+        <path data-tool-trace data-line-draw d="M480 132V348" />
+        <path data-tool-trace data-line-draw d="M188 240H772" />
+      </svg>
+      <span class="toolbox-indicator" data-tool-indicator aria-hidden="true"></span>
     </div>
 
     <TechnicalDiagram variant="toolbox" className="toolbox-diagram" />

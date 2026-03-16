@@ -10,13 +10,13 @@ const { content } = Astro.props;
 ---
 
 <section id="act-experience" class="home-act act-experience" data-act="experience">
-  <div class="act-panel act-panel-experience">
+  <div class="act-panel act-panel-experience" data-scene-panel>
     <header class="act-header">
       <p class="act-kicker" data-reveal>{content.actTitle}</p>
       <h2 class="act-title" data-reveal>{content.heading}</h2>
     </header>
 
-    <div class="experience-grid">
+    <div class="experience-grid" data-exp-scene>
       <div class="experience-spine-wrap">
         <p class="experience-period" data-reveal>{content.period}</p>
         <p class="experience-company" data-reveal>{content.company}</p>
@@ -42,6 +42,22 @@ const { content } = Astro.props;
             <li>{theme}</li>
           ))}
         </ul>
+
+        <div class="experience-spec-track" data-exp-spec-track>
+          {content.nodes.map((node) => (
+            <article class="experience-spec-mini" data-exp-card>
+              <p>{node.label}</p>
+              <h3>{node.title}</h3>
+              <span>{node.meta}</span>
+            </article>
+          ))}
+        </div>
+
+        <div class="experience-connector-map" aria-hidden="true">
+          <span data-exp-connector></span>
+          <span data-exp-connector></span>
+          <span data-exp-connector></span>
+        </div>
 
         <article class="spec-card spec-card-highlight" data-reveal>
           <p class="spec-card-kicker">Specification</p>

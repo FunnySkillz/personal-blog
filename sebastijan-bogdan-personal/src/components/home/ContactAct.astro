@@ -10,7 +10,7 @@ const { content } = Astro.props;
 ---
 
 <section id="act-contact" class="home-act act-contact" data-act="contact">
-  <div class="act-panel act-panel-contact">
+  <div class="act-panel act-panel-contact" data-scene-panel data-contact-scene>
     <p class="act-kicker" data-reveal>{content.actTitle}</p>
     <h2 class="act-title" data-reveal>{content.heading}</h2>
     <p class="act-intro" data-reveal>{content.intro}</p>
@@ -21,6 +21,7 @@ const { content } = Astro.props;
           role="listitem"
           class="contact-link"
           data-reveal
+          data-node
           href={link.href}
           target={link.external ? "_blank" : undefined}
           rel={link.external ? "noreferrer noopener" : undefined}
