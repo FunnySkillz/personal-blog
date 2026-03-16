@@ -17,6 +17,11 @@ export interface HomeAnimationHandle {
 const REVEAL_SELECTOR = "[data-reveal]";
 const LINE_GROW_SELECTOR = "[data-line-grow]";
 const LINE_DRAW_SELECTOR = "[data-line-draw]";
+const SHARED_STAGE_ACTS = new Set(["hero", "experience", "projects"]);
+
+function hasSharedDesktopStage(root: HTMLElement, breakpoint: HomeBreakpoint): boolean {
+  return breakpoint === "desktop" && root.querySelector("[data-persistent-stage]") !== null;
+}
 
 function primeSvgLine(line: SVGElement): number {
   const target = line as SVGGeometryElement;
@@ -71,6 +76,17 @@ function applyReducedMotionState(root: HTMLElement): void {
       node.style.opacity = "1";
     }
   });
+
+  const persistentStageShell = root.querySelector<HTMLElement>("[data-persistent-stage-shell]");
+  if (persistentStageShell) {
+    persistentStageShell.style.opacity = "1";
+  }
+  root.querySelectorAll("[data-stage-label-group]").forEach((node) => {
+    if (node instanceof HTMLElement) {
+      node.style.opacity = "1";
+      node.style.transform = "none";
+    }
+  });
 }
 
 function initLenisIfNeeded(reducedMotion: boolean, breakpoint: HomeBreakpoint): {
@@ -110,6 +126,7 @@ function initLenisIfNeeded(reducedMotion: boolean, breakpoint: HomeBreakpoint): 
 function setupActHandoffs(root: HTMLElement, breakpoint: HomeBreakpoint): void {
   const acts = Array.from(root.querySelectorAll<HTMLElement>("[data-act]"));
   if (acts.length < 2) return;
+  const useSharedDesktopStage = hasSharedDesktopStage(root, breakpoint);
 
   const configByBreakpoint: Record<
     HomeBreakpoint,
@@ -158,6 +175,14 @@ function setupActHandoffs(root: HTMLElement, breakpoint: HomeBreakpoint): void {
     const outgoingAct = acts[index - 1];
     const incomingActName = incomingAct.dataset.act ?? "";
     const outgoingActName = outgoingAct.dataset.act ?? "";
+
+    if (
+      useSharedDesktopStage &&
+      (incomingActName === "experience" || incomingActName === "projects")
+    ) {
+      return;
+    }
+
     const isProjectsAdjacentDesktop =
       isDesktop &&
       ((incomingActName === "projects" && outgoingActName === "experience") ||
@@ -212,7 +237,158 @@ function setupActHandoffs(root: HTMLElement, breakpoint: HomeBreakpoint): void {
   });
 }
 
+function setupPersistentStage(root: HTMLElement, breakpoint: HomeBreakpoint): void {
+  if (!hasSharedDesktopStage(root, breakpoint)) return;
+
+  const shell = root.querySelector<HTMLElement>("[data-persistent-stage-shell]");
+  const stage = root.querySelector<HTMLElement>("[data-persistent-stage]");
+  const heroAct = root.querySelector<HTMLElement>("#act-hero");
+  const experienceAct = root.querySelector<HTMLElement>("#act-experience");
+  const projectsAct = root.querySelector<HTMLElement>("#act-projects");
+
+  if (!shell || !stage || !heroAct || !experienceAct || !projectsAct) return;
+
+  const heroText = heroAct.querySelector<HTMLElement>("[data-hero-text]");
+  const experienceRevealNodes = Array.from(experienceAct.querySelectorAll<HTMLElement>("[data-reveal]"));
+  const experienceNodeCluster = Array.from(
+    experienceAct.querySelectorAll<HTMLElement>(
+      ".experience-node, .experience-spec-mini, .experience-theme-list li, .spec-card-highlight"
+    )
+  );
+  const projectRevealNodes = Array.from(projectsAct.querySelectorAll<HTMLElement>("[data-reveal]"));
+  const projectPanels = Array.from(projectsAct.querySelectorAll<HTMLElement>("[data-project-panel]"));
+  const projectDots = Array.from(projectsAct.querySelectorAll<HTMLElement>("[data-project-dot]"));
+
+  const heroLayer = stage.querySelector<SVGGElement>("[data-stage-mode-layer='hero']");
+  const experienceLayer = stage.querySelector<SVGGElement>("[data-stage-mode-layer='experience']");
+  const projectsLayer = stage.querySelector<SVGGElement>("[data-stage-mode-layer='projects']");
+  const heroLabelGroup = stage.querySelector<HTMLElement>("[data-stage-label-group='hero']");
+  const experienceLabelGroup = stage.querySelector<HTMLElement>("[data-stage-label-group='experience']");
+  const projectsLabelGroup = stage.querySelector<HTMLElement>("[data-stage-label-group='projects']");
+
+  if (!heroLayer || !experienceLayer || !projectsLayer) return;
+
+  const sharedLines = Array.from(stage.querySelectorAll<SVGElement>("[data-stage-shared-line]"));
+  const heroModeLines = Array.from(stage.querySelectorAll<SVGElement>("[data-stage-mode-line='hero']"));
+  const experienceModeLines = Array.from(
+    stage.querySelectorAll<SVGElement>("[data-stage-mode-line='experience']")
+  );
+  const projectsModeLines = Array.from(stage.querySelectorAll<SVGElement>("[data-stage-mode-line='projects']"));
+
+  const setStageMode = (mode: "hero" | "experience" | "projects" | "resolve") => {
+    stage.dataset.stageMode = mode;
+  };
+
+  const setProjectActive = (index: number) => {
+    if (projectPanels.length) {
+      setActiveIndex(projectPanels, index);
+    }
+    if (projectDots.length) {
+      setActiveIndex(projectDots, index);
+    }
+  };
+
+  gsap.set(shell, { autoAlpha: 0 });
+  gsap.set(stage, { autoAlpha: 0.96, scale: 0.94, yPercent: 4, transformOrigin: "center center" });
+  gsap.set(sharedLines, { autoAlpha: 0.3 });
+  gsap.set(heroModeLines, { autoAlpha: 0.9 });
+  gsap.set(experienceModeLines, { autoAlpha: 0.16 });
+  gsap.set(projectsModeLines, { autoAlpha: 0.14 });
+  gsap.set(heroLayer, { autoAlpha: 1, x: 0, y: 0, rotation: 0, transformOrigin: "center center" });
+  gsap.set(experienceLayer, { autoAlpha: 0.2, x: 22, y: -14, rotation: 6, transformOrigin: "center center" });
+  gsap.set(projectsLayer, { autoAlpha: 0.14, x: -20, y: 24, rotation: -6, transformOrigin: "center center" });
+  gsap.set(heroLabelGroup, { autoAlpha: 1, y: 0 });
+  gsap.set(experienceLabelGroup, { autoAlpha: 0, y: 8 });
+  gsap.set(projectsLabelGroup, { autoAlpha: 0, y: 8 });
+  gsap.set(experienceRevealNodes, { autoAlpha: 0, y: 16 });
+  gsap.set(experienceNodeCluster, { autoAlpha: 0.36, y: 10 });
+  gsap.set(projectRevealNodes, { autoAlpha: 0, y: 16 });
+  gsap.set(projectPanels, { autoAlpha: 0.2, y: 14, scale: 0.97 });
+  gsap.set(projectDots, { autoAlpha: 0.44, scale: 1 });
+  projectPanels.forEach((panel) => panel.classList.remove("is-active"));
+  projectDots.forEach((dot) => dot.classList.remove("is-active"));
+  setStageMode("hero");
+
+  const persistentTl = gsap.timeline({
+    defaults: { ease: "none" },
+    scrollTrigger: {
+      trigger: heroAct,
+      start: "top top+=84",
+      endTrigger: projectsAct,
+      end: "bottom top+=88",
+      scrub: true,
+      invalidateOnRefresh: true,
+      onEnter: () => {
+        gsap.set(shell, { autoAlpha: 1 });
+      },
+      onEnterBack: () => {
+        gsap.set(shell, { autoAlpha: 1 });
+      },
+      onLeave: () => {
+        gsap.set(shell, { autoAlpha: 0 });
+      },
+      onLeaveBack: () => {
+        gsap.set(shell, { autoAlpha: 0 });
+      }
+    }
+  });
+
+  persistentTl.to(shell, { autoAlpha: 1, duration: 0.04 }, 0);
+  persistentTl.to(stage, { scale: 1, yPercent: 0, duration: 0.15 }, 0.02);
+  persistentTl.to(sharedLines, { autoAlpha: 0.7, strokeDashoffset: 0, duration: 0.18, stagger: 0.01 }, 0.02);
+  persistentTl.to(heroModeLines, { autoAlpha: 1, strokeDashoffset: 0, duration: 0.2, stagger: 0.012 }, 0.04);
+
+  if (heroText) {
+    persistentTl.to(heroText, { autoAlpha: 1, y: 0, duration: 0.08 }, 0.04);
+    persistentTl.to(heroText, { autoAlpha: 0.18, y: -20, duration: 0.14 }, 0.22);
+  }
+
+  persistentTl.call(() => setStageMode("hero"), undefined, 0.12);
+  persistentTl.to(heroLayer, { autoAlpha: 0.18, x: -30, y: -20, rotation: -8, duration: 0.16 }, 0.2);
+  persistentTl.to(heroLabelGroup, { autoAlpha: 0.08, duration: 0.1 }, 0.22);
+  persistentTl.to(experienceLayer, { autoAlpha: 1, x: 0, y: 0, rotation: 0, duration: 0.18 }, 0.24);
+  persistentTl.to(experienceModeLines, { autoAlpha: 1, strokeDashoffset: 0, duration: 0.18, stagger: 0.012 }, 0.26);
+  persistentTl.to(experienceLabelGroup, { autoAlpha: 1, y: 0, duration: 0.13 }, 0.28);
+  persistentTl.to(experienceRevealNodes, { autoAlpha: 1, y: 0, duration: 0.12, stagger: 0.03 }, 0.3);
+  persistentTl.to(experienceNodeCluster, { autoAlpha: 1, y: 0, duration: 0.14, stagger: 0.02 }, 0.34);
+  persistentTl.call(() => setStageMode("experience"), undefined, 0.4);
+
+  persistentTl.to(experienceLayer, { autoAlpha: 0.22, x: 20, y: -12, rotation: 7, duration: 0.14 }, 0.58);
+  persistentTl.to(experienceLabelGroup, { autoAlpha: 0.1, duration: 0.1 }, 0.58);
+  persistentTl.to(projectsLayer, { autoAlpha: 1, x: 0, y: 0, rotation: 0, duration: 0.18 }, 0.6);
+  persistentTl.to(projectsModeLines, { autoAlpha: 1, strokeDashoffset: 0, duration: 0.2, stagger: 0.01 }, 0.62);
+  persistentTl.to(projectsLabelGroup, { autoAlpha: 1, y: 0, duration: 0.13 }, 0.64);
+  persistentTl.to(projectRevealNodes, { autoAlpha: 1, y: 0, duration: 0.12, stagger: 0.03 }, 0.66);
+  persistentTl.call(() => setStageMode("projects"), undefined, 0.72);
+
+  if (projectPanels.length >= 3) {
+    persistentTl.call(() => setProjectActive(0), undefined, 0.74);
+    persistentTl.to(projectPanels[0], { autoAlpha: 1, y: 0, scale: 1, duration: 0.12 }, 0.74);
+    persistentTl.to([projectPanels[1], projectPanels[2]], { autoAlpha: 0.24, y: 12, scale: 0.97, duration: 0.12 }, 0.74);
+    persistentTl.to(projectDots[0], { autoAlpha: 1, scale: 1.08, duration: 0.1 }, 0.76);
+    persistentTl.to([projectDots[1], projectDots[2]], { autoAlpha: 0.45, scale: 1, duration: 0.1 }, 0.76);
+
+    persistentTl.call(() => setProjectActive(1), undefined, 0.84);
+    persistentTl.to(projectPanels[1], { autoAlpha: 1, y: 0, scale: 1, duration: 0.11 }, 0.84);
+    persistentTl.to([projectPanels[0], projectPanels[2]], { autoAlpha: 0.25, y: 10, scale: 0.97, duration: 0.11 }, 0.84);
+    persistentTl.to(projectDots[1], { autoAlpha: 1, scale: 1.08, duration: 0.1 }, 0.86);
+    persistentTl.to([projectDots[0], projectDots[2]], { autoAlpha: 0.45, scale: 1, duration: 0.1 }, 0.86);
+
+    persistentTl.call(() => setProjectActive(2), undefined, 0.92);
+    persistentTl.to(projectPanels[2], { autoAlpha: 1, y: 0, scale: 1, duration: 0.1 }, 0.92);
+    persistentTl.to([projectPanels[0], projectPanels[1]], { autoAlpha: 0.26, y: 8, scale: 0.97, duration: 0.1 }, 0.92);
+    persistentTl.to(projectDots[2], { autoAlpha: 1, scale: 1.08, duration: 0.08 }, 0.93);
+    persistentTl.to([projectDots[0], projectDots[1]], { autoAlpha: 0.45, scale: 1, duration: 0.08 }, 0.93);
+  }
+
+  persistentTl.call(() => setStageMode("resolve"), undefined, 0.96);
+  persistentTl.to(stage, { xPercent: 1.2, scale: 0.985, duration: 0.08 }, 0.94);
+  persistentTl.to(shell, { autoAlpha: 0, duration: 0.05 }, 0.98);
+}
+
 function setupHeroScene(root: HTMLElement, breakpoint: HomeBreakpoint): void {
+  if (hasSharedDesktopStage(root, breakpoint)) return;
+
   const hero = root.querySelector<HTMLElement>("#act-hero");
   if (!hero) return;
 
@@ -343,6 +519,8 @@ function setupHeroScene(root: HTMLElement, breakpoint: HomeBreakpoint): void {
 }
 
 function setupExperienceScene(root: HTMLElement, breakpoint: HomeBreakpoint): void {
+  if (hasSharedDesktopStage(root, breakpoint)) return;
+
   const act = root.querySelector<HTMLElement>("#act-experience");
   if (!act) return;
 
@@ -412,6 +590,8 @@ function setupExperienceScene(root: HTMLElement, breakpoint: HomeBreakpoint): vo
 }
 
 function setupProjectsScene(root: HTMLElement, breakpoint: HomeBreakpoint): void {
+  if (hasSharedDesktopStage(root, breakpoint)) return;
+
   const act = root.querySelector<HTMLElement>("#act-projects");
   if (!act) return;
 
@@ -860,6 +1040,7 @@ export function initHomeScrollAnimations(options: HomeAnimationOptions): HomeAni
     gsap.set(revealNodes, { autoAlpha: 0, y: 18 });
 
     setupActHandoffs(root, breakpoint);
+    setupPersistentStage(root, breakpoint);
     setupHeroScene(root, breakpoint);
     setupExperienceScene(root, breakpoint);
     setupProjectsScene(root, breakpoint);
