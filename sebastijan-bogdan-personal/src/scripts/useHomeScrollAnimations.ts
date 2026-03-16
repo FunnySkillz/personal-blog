@@ -112,37 +112,43 @@ function setupActHandoffs(root: HTMLElement, breakpoint: HomeBreakpoint): void {
     }
   > = {
     desktop: {
-      incomingFromY: 12,
-      outgoingToY: -3.6,
-      incomingFromAlpha: 0.58,
-      outgoingToAlpha: 0.86,
-      start: "top 94%",
-      end: "top 52%"
+      incomingFromY: 10,
+      outgoingToY: -1.4,
+      incomingFromAlpha: 0.8,
+      outgoingToAlpha: 0.92,
+      start: "top 92%",
+      end: "top 64%"
     },
     tablet: {
-      incomingFromY: 7.5,
-      outgoingToY: -2.2,
-      incomingFromAlpha: 0.72,
-      outgoingToAlpha: 0.9,
-      start: "top 96%",
-      end: "top 62%"
+      incomingFromY: 5.2,
+      outgoingToY: -1.1,
+      incomingFromAlpha: 0.86,
+      outgoingToAlpha: 0.96,
+      start: "top 94%",
+      end: "top 72%"
     },
     mobile: {
-      incomingFromY: 2.2,
-      outgoingToY: -0.8,
-      incomingFromAlpha: 0.88,
-      outgoingToAlpha: 0.96,
+      incomingFromY: 1.2,
+      outgoingToY: -0.4,
+      incomingFromAlpha: 0.94,
+      outgoingToAlpha: 0.98,
       start: "top 98%",
-      end: "top 80%"
+      end: "top 84%"
     }
   };
 
   const cfg = configByBreakpoint[breakpoint];
+  const pinnedDesktopActs = new Set(["hero", "experience", "projects", "toolbox", "philosophy"]);
+  const isDesktop = breakpoint === "desktop";
 
   acts.forEach((incomingAct, index) => {
     if (index === 0) return;
 
     const outgoingAct = acts[index - 1];
+    const incomingActName = incomingAct.dataset.act ?? "";
+    const outgoingActName = outgoingAct.dataset.act ?? "";
+    const skipOutgoingMotion =
+      isDesktop && (pinnedDesktopActs.has(incomingActName) || pinnedDesktopActs.has(outgoingActName));
     const incomingPanel = incomingAct.querySelector<HTMLElement>("[data-scene-panel]");
     const outgoingPanel = outgoingAct.querySelector<HTMLElement>("[data-scene-panel]");
 
@@ -155,23 +161,33 @@ function setupActHandoffs(root: HTMLElement, breakpoint: HomeBreakpoint): void {
         start: cfg.start,
         end: cfg.end,
         scrub: true,
-        invalidateOnRefresh: true
+        invalidateOnRefresh: true,
+        onLeave: () => {
+          gsap.set(incomingPanel, { clearProps: "transform,opacity,visibility" });
+          gsap.set(outgoingPanel, { clearProps: "transform,opacity,visibility" });
+        },
+        onLeaveBack: () => {
+          gsap.set(incomingPanel, { clearProps: "transform,opacity,visibility" });
+          gsap.set(outgoingPanel, { clearProps: "transform,opacity,visibility" });
+        }
       }
     });
 
     handoffTl.fromTo(
       incomingPanel,
-      { yPercent: cfg.incomingFromY, autoAlpha: cfg.incomingFromAlpha },
+      { yPercent: cfg.incomingFromY, autoAlpha: cfg.incomingFromAlpha, immediateRender: false },
       { yPercent: 0, autoAlpha: 1, immediateRender: false },
       0
     );
 
-    handoffTl.fromTo(
-      outgoingPanel,
-      { yPercent: 0, autoAlpha: 1 },
-      { yPercent: cfg.outgoingToY, autoAlpha: cfg.outgoingToAlpha, immediateRender: false },
-      0
-    );
+    if (!skipOutgoingMotion) {
+      handoffTl.fromTo(
+        outgoingPanel,
+        { yPercent: 0, autoAlpha: 1 },
+        { yPercent: cfg.outgoingToY, autoAlpha: cfg.outgoingToAlpha, immediateRender: false },
+        0.35
+      );
+    }
   });
 }
 
@@ -426,7 +442,7 @@ function setupProjectsScene(root: HTMLElement, breakpoint: HomeBreakpoint): void
   const projectsTl = gsap.timeline({
     defaults: { ease: "none" },
     scrollTrigger: {
-      trigger: stage,
+      trigger: act,
       start: breakpoint === "desktop" ? "top top+=84" : "top 72%",
       end: breakpoint === "desktop" ? "+=340%" : "bottom 26%",
       scrub: true,
@@ -607,6 +623,7 @@ export function initHomeScrollAnimations(options: HomeAnimationOptions): HomeAni
   const { cleanup: cleanupLenis } = initLenisIfNeeded(reducedMotion, breakpoint);
 
   const context = gsap.context(() => {
+    const revealNodes = Array.from(root.querySelectorAll<HTMLElement>(REVEAL_SELECTOR));
     const growLines = Array.from(root.querySelectorAll<HTMLElement>(LINE_GROW_SELECTOR));
     const drawLines = Array.from(root.querySelectorAll<SVGElement>(LINE_DRAW_SELECTOR));
 
@@ -627,6 +644,8 @@ export function initHomeScrollAnimations(options: HomeAnimationOptions): HomeAni
       applyReducedMotionState(root);
       return;
     }
+
+    gsap.set(revealNodes, { autoAlpha: 0, y: 18 });
 
     setupActHandoffs(root, breakpoint);
     setupHeroScene(root, breakpoint);
