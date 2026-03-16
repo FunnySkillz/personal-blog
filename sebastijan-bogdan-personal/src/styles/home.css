@@ -81,6 +81,34 @@ body.narrative-home footer hr {
   .home-act[data-act="philosophy"] .act-panel {
     min-height: calc(100svh - 104px);
   }
+
+  .home-act[data-act="hero"] .act-content-col {
+    padding-top: 0.35rem;
+  }
+}
+
+@media (min-width: 1080px) and (max-width: 1399px) {
+  .act-panel-hero {
+    padding-top: 1.1rem;
+  }
+
+  .hero-title {
+    margin-top: 0.32rem;
+  }
+
+  .hero-diagram {
+    top: -10.5%;
+  }
+}
+
+@media (min-width: 1400px) {
+  .act-panel-hero {
+    padding-top: 1.35rem;
+  }
+
+  .hero-diagram {
+    top: -8.8%;
+  }
 }
 
 .act-panel::before {
@@ -147,8 +175,9 @@ body.narrative-home footer hr {
   grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
   gap: clamp(1.5rem, 2.6vw, 2.5rem);
   min-height: min(92vh, 940px);
-  padding-top: clamp(2.2rem, 4vw, 4rem);
+  padding-top: clamp(1.35rem, 2.6vw, 2.45rem);
   padding-bottom: clamp(2.2rem, 4vw, 4rem);
+  align-items: start;
 }
 
 .act-content-col {
@@ -156,12 +185,12 @@ body.narrative-home footer hr {
   z-index: 3;
   display: flex;
   flex-direction: column;
-  align-self: center;
+  align-self: start;
   max-width: 34.5rem;
 }
 
 .hero-title {
-  margin-top: 0.86rem;
+  margin-top: 0.45rem;
   font-size: clamp(2.9rem, 8.8vw, 5.8rem);
 }
 
@@ -218,7 +247,7 @@ body.narrative-home footer hr {
   width: 156%;
   max-width: none;
   right: 30%;
-  top: -6%;
+  top: -9.5%;
 }
 
 .hero-label-cluster {
