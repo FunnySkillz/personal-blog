@@ -96,43 +96,82 @@ function initLenisIfNeeded(reducedMotion: boolean, breakpoint: HomeBreakpoint): 
   };
 }
 
-function setupPanelTransitions(root: HTMLElement, breakpoint: HomeBreakpoint): void {
-  const panels = Array.from(root.querySelectorAll<HTMLElement>("[data-scene-panel]"));
-  const pinnedActs = new Set(["hero", "experience", "projects", "toolbox", "philosophy"]);
+function setupActHandoffs(root: HTMLElement, breakpoint: HomeBreakpoint): void {
+  const acts = Array.from(root.querySelectorAll<HTMLElement>("[data-act]"));
+  if (acts.length < 2) return;
 
-  panels.forEach((panel) => {
-    const act = panel.closest<HTMLElement>("[data-act]")?.dataset.act;
-    if (breakpoint === "desktop" && act && pinnedActs.has(act)) {
-      return;
+  const configByBreakpoint: Record<
+    HomeBreakpoint,
+    {
+      incomingFromY: number;
+      outgoingToY: number;
+      incomingFromAlpha: number;
+      outgoingToAlpha: number;
+      start: string;
+      end: string;
     }
+  > = {
+    desktop: {
+      incomingFromY: 12,
+      outgoingToY: -3.6,
+      incomingFromAlpha: 0.58,
+      outgoingToAlpha: 0.86,
+      start: "top 94%",
+      end: "top 52%"
+    },
+    tablet: {
+      incomingFromY: 7.5,
+      outgoingToY: -2.2,
+      incomingFromAlpha: 0.72,
+      outgoingToAlpha: 0.9,
+      start: "top 96%",
+      end: "top 62%"
+    },
+    mobile: {
+      incomingFromY: 2.2,
+      outgoingToY: -0.8,
+      incomingFromAlpha: 0.88,
+      outgoingToAlpha: 0.96,
+      start: "top 98%",
+      end: "top 80%"
+    }
+  };
 
-    gsap.fromTo(
-      panel,
-      { yPercent: 10, autoAlpha: 0.7 },
-      {
-        yPercent: 0,
-        autoAlpha: 1,
-        ease: "none",
-        scrollTrigger: {
-          trigger: panel,
-          start: "top 96%",
-          end: "top 56%",
-          scrub: true
-        }
-      }
-    );
+  const cfg = configByBreakpoint[breakpoint];
 
-    gsap.to(panel, {
-      yPercent: -4,
-      autoAlpha: 0.94,
-      ease: "none",
+  acts.forEach((incomingAct, index) => {
+    if (index === 0) return;
+
+    const outgoingAct = acts[index - 1];
+    const incomingPanel = incomingAct.querySelector<HTMLElement>("[data-scene-panel]");
+    const outgoingPanel = outgoingAct.querySelector<HTMLElement>("[data-scene-panel]");
+
+    if (!incomingPanel || !outgoingPanel) return;
+
+    const handoffTl = gsap.timeline({
+      defaults: { ease: "none" },
       scrollTrigger: {
-        trigger: panel,
-        start: "bottom 54%",
-        end: "bottom top",
-        scrub: true
+        trigger: incomingAct,
+        start: cfg.start,
+        end: cfg.end,
+        scrub: true,
+        invalidateOnRefresh: true
       }
     });
+
+    handoffTl.fromTo(
+      incomingPanel,
+      { yPercent: cfg.incomingFromY, autoAlpha: cfg.incomingFromAlpha },
+      { yPercent: 0, autoAlpha: 1, immediateRender: false },
+      0
+    );
+
+    handoffTl.fromTo(
+      outgoingPanel,
+      { yPercent: 0, autoAlpha: 1 },
+      { yPercent: cfg.outgoingToY, autoAlpha: cfg.outgoingToAlpha, immediateRender: false },
+      0
+    );
   });
 }
 
@@ -589,7 +628,7 @@ export function initHomeScrollAnimations(options: HomeAnimationOptions): HomeAni
       return;
     }
 
-    setupPanelTransitions(root, breakpoint);
+    setupActHandoffs(root, breakpoint);
     setupHeroScene(root, breakpoint);
     setupExperienceScene(root, breakpoint);
     setupProjectsScene(root, breakpoint);

@@ -67,6 +67,9 @@ body.narrative-home footer hr {
   box-shadow: var(--home-shadow);
   overflow: clip;
   isolation: isolate;
+  transform: translateY(0);
+  opacity: 1;
+  will-change: transform, opacity;
 }
 
 @media (min-width: 1080px) {
@@ -1185,6 +1188,10 @@ body.narrative-home footer hr {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .act-panel {
+    will-change: auto;
+  }
+
   .system-cta,
   .contact-link,
   .experience-node,
