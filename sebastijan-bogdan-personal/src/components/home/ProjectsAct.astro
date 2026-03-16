@@ -1,0 +1,47 @@
+---
+import type { ProjectsSection } from "../../content/homeContent";
+import TechnicalDiagram from "./TechnicalDiagram.astro";
+
+interface Props {
+  content: ProjectsSection;
+}
+
+const { content } = Astro.props;
+---
+
+<section id="act-projects" class="home-act act-projects" data-act="projects">
+  <div class="act-panel act-panel-projects">
+    <header class="act-header act-header-projects">
+      <p class="act-kicker" data-reveal>{content.actTitle}</p>
+      <h2 class="act-title" data-reveal>{content.heading}</h2>
+      <p class="act-intro" data-reveal>{content.intro}</p>
+    </header>
+
+    <div class="project-stage" data-project-stage>
+      {content.stations.map((station, index) => (
+        <article
+          class={`project-station project-station-${station.id}`}
+          data-reveal
+          data-node
+          style={`--station-index:${index};`}
+        >
+          <p class="project-motif">{station.motif}</p>
+          <h3>{station.title}</h3>
+          <p>{station.body}</p>
+          <ul>
+            {station.bullets.map((bullet) => (
+              <li>{bullet}</li>
+            ))}
+          </ul>
+          <div class="project-tags" aria-label={`${station.title} stack`}>
+            {station.tags.map((tag) => (
+              <span>{tag}</span>
+            ))}
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <TechnicalDiagram variant="projects" className="projects-diagram" />
+  </div>
+</section>

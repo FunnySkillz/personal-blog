@@ -1,0 +1,57 @@
+---
+import type { ExperienceSection } from "../../content/homeContent";
+import TechnicalDiagram from "./TechnicalDiagram.astro";
+
+interface Props {
+  content: ExperienceSection;
+}
+
+const { content } = Astro.props;
+---
+
+<section id="act-experience" class="home-act act-experience" data-act="experience">
+  <div class="act-panel act-panel-experience">
+    <header class="act-header">
+      <p class="act-kicker" data-reveal>{content.actTitle}</p>
+      <h2 class="act-title" data-reveal>{content.heading}</h2>
+    </header>
+
+    <div class="experience-grid">
+      <div class="experience-spine-wrap">
+        <p class="experience-period" data-reveal>{content.period}</p>
+        <p class="experience-company" data-reveal>{content.company}</p>
+        <p class="experience-role" data-reveal>{content.role}</p>
+
+        <span class="experience-spine-line" data-line-grow="y" aria-hidden="true"></span>
+        <div class="experience-spine">
+          {content.nodes.map((node, index) => (
+            <article class="experience-node" data-node style={`--node-index:${index};`}>
+              <span class="experience-node-marker" aria-hidden="true"></span>
+              <p class="experience-node-label">{node.label}</p>
+              <h3>{node.title}</h3>
+              <p class="experience-node-meta">{node.meta}</p>
+              <p class="experience-node-focus">{node.focus}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      <div class="experience-cards">
+        <ul class="experience-theme-list" data-reveal>
+          {content.themes.map((theme) => (
+            <li>{theme}</li>
+          ))}
+        </ul>
+
+        <article class="spec-card spec-card-highlight" data-reveal>
+          <p class="spec-card-kicker">Specification</p>
+          <h3>{content.highlightTitle}</h3>
+          <p>{content.highlightStack}</p>
+          <p>{content.highlightFocus}</p>
+        </article>
+      </div>
+    </div>
+
+    <TechnicalDiagram variant="experience" className="experience-diagram" />
+  </div>
+</section>

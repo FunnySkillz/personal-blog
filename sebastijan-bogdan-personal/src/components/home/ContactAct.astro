@@ -1,0 +1,36 @@
+---
+import type { ContactSection } from "../../content/homeContent";
+import TechnicalDiagram from "./TechnicalDiagram.astro";
+
+interface Props {
+  content: ContactSection;
+}
+
+const { content } = Astro.props;
+---
+
+<section id="act-contact" class="home-act act-contact" data-act="contact">
+  <div class="act-panel act-panel-contact">
+    <p class="act-kicker" data-reveal>{content.actTitle}</p>
+    <h2 class="act-title" data-reveal>{content.heading}</h2>
+    <p class="act-intro" data-reveal>{content.intro}</p>
+
+    <div class="contact-links" role="list" aria-label="Contact destinations">
+      {content.links.map((link) => (
+        <a
+          role="listitem"
+          class="contact-link"
+          data-reveal
+          href={link.href}
+          target={link.external ? "_blank" : undefined}
+          rel={link.external ? "noreferrer noopener" : undefined}
+        >
+          <span>{link.label}</span>
+          <span aria-hidden="true">-></span>
+        </a>
+      ))}
+    </div>
+
+    <TechnicalDiagram variant="contact" className="contact-diagram" />
+  </div>
+</section>

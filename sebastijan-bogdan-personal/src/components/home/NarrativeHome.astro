@@ -1,0 +1,60 @@
+---
+import "../../styles/home.css";
+import type { HomeLocale, HomePageContent } from "../../content/homeContent";
+import HeroAct from "./HeroAct.astro";
+import ExperienceAct from "./ExperienceAct.astro";
+import ProjectsAct from "./ProjectsAct.astro";
+import ToolboxAct from "./ToolboxAct.astro";
+import PhilosophyAct from "./PhilosophyAct.astro";
+import ContactAct from "./ContactAct.astro";
+
+interface Props {
+  locale: HomeLocale;
+  content: HomePageContent;
+}
+
+const { locale, content } = Astro.props;
+---
+
+<div class="home-narrative" data-home-root data-locale={locale}>
+  <HeroAct content={content.hero} />
+  <ExperienceAct content={content.experience} />
+  <ProjectsAct content={content.projects} />
+  <ToolboxAct content={content.toolbox} />
+  <PhilosophyAct content={content.philosophy} />
+  <ContactAct content={content.contact} />
+</div>
+
+<script type="module">
+  import { initHomeScrollAnimations } from "../../scripts/useHomeScrollAnimations";
+
+  const root = document.querySelector("[data-home-root]");
+
+  if (root instanceof HTMLElement) {
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const getBreakpoint = () => {
+      if (window.innerWidth >= 1080) return "desktop";
+      if (window.innerWidth >= 768) return "tablet";
+      return "mobile";
+    };
+
+    let animationHandle = initHomeScrollAnimations({
+      root,
+      reducedMotion: motionQuery.matches,
+      breakpoint: getBreakpoint()
+    });
+
+    const onPageHide = () => animationHandle.destroy();
+    const onMotionChange = () => {
+      animationHandle.destroy();
+      animationHandle = initHomeScrollAnimations({
+        root,
+        reducedMotion: motionQuery.matches,
+        breakpoint: getBreakpoint()
+      });
+    };
+
+    window.addEventListener("pagehide", onPageHide, { once: true });
+    motionQuery.addEventListener("change", onMotionChange);
+  }
+</script>

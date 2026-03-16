@@ -6,9 +6,10 @@ import sbFavicon from "../assets/SB_Initials_Favicon.svg";
 interface Props {
   title: string;
   description: string;
+  fullWidth?: boolean;
 }
 
-const { title, description } = Astro.props;
+const { title, description, fullWidth = false } = Astro.props;
 const pathname = Astro.url.pathname;
 const isEnglish = pathname === "/en" || pathname.startsWith("/en/");
 ---
@@ -22,16 +23,16 @@ const isEnglish = pathname === "/en" || pathname.startsWith("/en/");
     <link rel="icon" type="image/svg+xml" href={sbFavicon.src} />
     <title>{title}</title>
   </head>
-  <body>
+  <body class:list={{ "narrative-home": fullWidth }}>
     <Nav />
 
-    <main>
+    <main class:list={{ "main-full-width": fullWidth }}>
       <slot />
     </main>
 
-    <footer>
+    <footer class:list={{ "footer-full-width": fullWidth }}>
       <hr />
-      <p>© 2026 Sebastijan Bogdan. All rights reserved.</p>
+      <p>(c) 2026 Sebastijan Bogdan. All rights reserved.</p>
     </footer>
   </body>
 </html>

@@ -1,0 +1,35 @@
+---
+import type { ToolboxSection } from "../../content/homeContent";
+import TechnicalDiagram from "./TechnicalDiagram.astro";
+
+interface Props {
+  content: ToolboxSection;
+}
+
+const { content } = Astro.props;
+---
+
+<section id="act-toolbox" class="home-act act-toolbox" data-act="toolbox">
+  <div class="act-panel act-panel-toolbox">
+    <header class="act-header">
+      <p class="act-kicker" data-reveal>{content.actTitle}</p>
+      <h2 class="act-title" data-reveal>{content.heading}</h2>
+      <p class="act-intro" data-reveal>{content.intro}</p>
+    </header>
+
+    <div class="toolbox-board" data-node>
+      {content.groups.map((group, index) => (
+        <article class="toolbox-group" data-reveal style={`--group-index:${index};`}>
+          <h3>{group.title}</h3>
+          <ul>
+            {group.tools.map((tool) => (
+              <li>{tool}</li>
+            ))}
+          </ul>
+        </article>
+      ))}
+    </div>
+
+    <TechnicalDiagram variant="toolbox" className="toolbox-diagram" />
+  </div>
+</section>

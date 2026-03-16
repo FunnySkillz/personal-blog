@@ -1,0 +1,29 @@
+---
+import type { PhilosophySection } from "../../content/homeContent";
+import TechnicalDiagram from "./TechnicalDiagram.astro";
+
+interface Props {
+  content: PhilosophySection;
+}
+
+const { content } = Astro.props;
+---
+
+<section id="act-philosophy" class="home-act act-philosophy" data-act="philosophy">
+  <div class="act-panel act-panel-philosophy">
+    <p class="act-kicker" data-reveal>{content.actTitle}</p>
+    <h2 class="philosophy-title" data-reveal>{content.headingTop}</h2>
+    <p class="philosophy-title emphasis" data-reveal>{content.headingBottom}</p>
+    <p class="philosophy-copy" data-reveal>{content.copy}</p>
+
+    <div class="philosophy-keywords" role="list" aria-label="Engineering keywords">
+      {content.keywords.map((keyword, index) => (
+        <span role="listitem" class="keyword-chip" data-reveal style={`--keyword-index:${index};`}>
+          {keyword}
+        </span>
+      ))}
+    </div>
+
+    <TechnicalDiagram variant="philosophy" className="philosophy-diagram" />
+  </div>
+</section>
