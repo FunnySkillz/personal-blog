@@ -240,6 +240,21 @@ const copy = isEnglish
         : form.dataset.labelIdle || "Send message";
     };
 
+    const resetCaptcha = () => {
+      if (!requiresCaptcha) return;
+
+      const tokenInput = form.querySelector(
+        'input[name="cf-turnstile-response"]',
+      );
+      if (tokenInput instanceof HTMLInputElement) {
+        tokenInput.value = "";
+      }
+
+      if (window.turnstile?.reset) {
+        window.turnstile.reset();
+      }
+    };
+
     const locale =
       form.querySelector("input[name='locale']")?.value === "en" ? "en" : "de";
     const dictionary =
@@ -336,6 +351,7 @@ const copy = isEnglish
 
       if (hasErrors) {
         setStatus(dictionary.generic, "error");
+        resetCaptcha();
         return;
       }
 
@@ -364,14 +380,15 @@ const copy = isEnglish
 
         if (response.ok) {
           form.reset();
-          if (window.turnstile?.reset) {
-            window.turnstile.reset();
-          }
+          resetCaptcha();
           setStatus(dictionary.success, "success");
           return;
         }
 
+        resetCaptcha();
+
         if (response.status === 403) {
+          setFieldError("captcha", dictionary.captcha);
           setStatus(dictionary.forbidden, "error");
         } else if (response.status === 429) {
           setStatus(dictionary.rateLimited, "error");
@@ -381,6 +398,7 @@ const copy = isEnglish
           setStatus(dictionary.server, "error");
         }
       } catch (_error) {
+        resetCaptcha();
         setStatus(dictionary.network, "error");
       } finally {
         setSending(false);
