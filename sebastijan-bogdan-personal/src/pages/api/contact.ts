@@ -104,10 +104,70 @@ const getClientIp = (request: Request): string => {
   return "unknown";
 };
 
+const getFirstHeaderValue = (value: string | null): string =>
+  value?.split(",")[0]?.trim() ?? "";
+
+const getOriginFromUrl = (value: string): string => {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return "";
+  }
+};
+
+const addOrigin = (origins: Set<string>, value: string | undefined): void => {
+  if (!value) return;
+
+  const origin = getOriginFromUrl(value);
+  if (origin) {
+    origins.add(origin);
+  }
+};
+
+const getAllowedRequestOrigins = (
+  request: Request,
+  requestUrl: URL
+): Set<string> => {
+  const origins = new Set<string>([
+    requestUrl.origin,
+    "https://sebastijan-bogdan.com",
+    "https://www.sebastijan-bogdan.com"
+  ]);
+
+  addOrigin(origins, import.meta.env.PUBLIC_SITE_URL);
+  addOrigin(origins, import.meta.env.SITE_URL);
+
+  const vercelUrl = import.meta.env.VERCEL_URL;
+  if (vercelUrl) {
+    addOrigin(
+      origins,
+      vercelUrl.startsWith("http") ? vercelUrl : `https://${vercelUrl}`
+    );
+  }
+
+  const forwardedHost = getFirstHeaderValue(
+    request.headers.get("x-forwarded-host")
+  );
+  if (forwardedHost) {
+    const forwardedProto =
+      getFirstHeaderValue(request.headers.get("x-forwarded-proto")) || "https";
+    addOrigin(origins, `${forwardedProto}://${forwardedHost}`);
+  }
+
+  const host = getFirstHeaderValue(request.headers.get("host"));
+  if (host) {
+    addOrigin(origins, `${requestUrl.protocol}//${host}`);
+    addOrigin(origins, `https://${host}`);
+  }
+
+  return origins;
+};
+
 const isValidRequestSource = (request: Request, requestUrl: URL): boolean => {
+  const allowedOrigins = getAllowedRequestOrigins(request, requestUrl);
   const origin = request.headers.get("origin");
-  if (origin && origin !== requestUrl.origin) {
-    return false;
+  if (origin) {
+    return allowedOrigins.has(origin);
   }
 
   const referer = request.headers.get("referer");
@@ -116,7 +176,7 @@ const isValidRequestSource = (request: Request, requestUrl: URL): boolean => {
   }
 
   try {
-    return new URL(referer).origin === requestUrl.origin;
+    return allowedOrigins.has(new URL(referer).origin);
   } catch {
     return false;
   }
