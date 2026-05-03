@@ -383,23 +383,6 @@ export const POST: APIRoute = async ({ request, url }) => {
     }
 
     const clientIp = getClientIp(request);
-    const limitResult = await runRateLimit(clientIp, {
-      upstashUrl,
-      upstashToken
-    });
-
-    if (!limitResult.success) {
-      const retryAfterHeaders =
-        typeof limitResult.retryAfterSeconds === "number"
-          ? { "retry-after": String(limitResult.retryAfterSeconds) }
-          : {};
-
-      return json(429, {
-        ok: false,
-        error: "rate_limited"
-      }, retryAfterHeaders);
-    }
-
     let captchaValid = false;
     try {
       captchaValid = await verifyTurnstile(
@@ -415,10 +398,32 @@ export const POST: APIRoute = async ({ request, url }) => {
     }
 
     if (!captchaValid) {
+      const messages = validationMessages[locale];
+
       return json(403, {
         ok: false,
-        error: "forbidden"
+        error: "forbidden",
+        fieldErrors: {
+          captcha: messages.captcha
+        }
       });
+    }
+
+    const limitResult = await runRateLimit(clientIp, {
+      upstashUrl,
+      upstashToken
+    });
+
+    if (!limitResult.success) {
+      const retryAfterHeaders =
+        typeof limitResult.retryAfterSeconds === "number"
+          ? { "retry-after": String(limitResult.retryAfterSeconds) }
+          : {};
+
+      return json(429, {
+        ok: false,
+        error: "rate_limited"
+      }, retryAfterHeaders);
     }
 
     const resend = new Resend(resendApiKey);

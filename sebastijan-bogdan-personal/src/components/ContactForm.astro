@@ -171,7 +171,7 @@ const copy = isEnglish
     <div class="form-field">
       {
         hasTurnstile ? (
-          <div class="cf-turnstile" data-sitekey={turnstileSiteKey} />
+          <div data-turnstile-widget data-sitekey={turnstileSiteKey} />
         ) : (
           <p class="form-status is-error" data-config-warning>
             {copy.captchaMissing}
@@ -190,26 +190,24 @@ const copy = isEnglish
   </div>
 </form>
 
-{
-  hasTurnstile && (
-    <script
-      src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-      async
-      defer
-    />
-  )
-}
-
 <script is:inline>
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phonePattern = /^[+0-9()\-./\s]{7,30}$/;
 
   const forms = Array.from(document.querySelectorAll("[data-contact-form]"));
+  const renderCaptchaCallbacks = [];
+
+  window.onContactTurnstileLoad = () => {
+    for (const renderCaptcha of renderCaptchaCallbacks) {
+      renderCaptcha();
+    }
+  };
 
   for (const form of forms) {
     const submitButton = form.querySelector("[data-submit]");
     const statusElement = form.querySelector("[data-status]");
     const requiresCaptcha = form.dataset.requiresCaptcha === "true";
+    const captchaElement = form.querySelector("[data-turnstile-widget]");
 
     const setStatus = (message, type = "") => {
       if (!statusElement) return;
@@ -240,17 +238,24 @@ const copy = isEnglish
         : form.dataset.labelIdle || "Send message";
     };
 
-    const resetCaptcha = () => {
-      if (!requiresCaptcha) return;
-
+    const clearCaptchaToken = () => {
       const tokenInput = form.querySelector(
         'input[name="cf-turnstile-response"]',
       );
       if (tokenInput instanceof HTMLInputElement) {
         tokenInput.value = "";
       }
+    };
 
-      if (window.turnstile?.reset) {
+    const resetCaptcha = () => {
+      if (!requiresCaptcha) return;
+
+      clearCaptchaToken();
+
+      const widgetId = form.dataset.turnstileWidgetId;
+      if (widgetId && window.turnstile?.reset) {
+        window.turnstile.reset(widgetId);
+      } else if (window.turnstile?.reset) {
         window.turnstile.reset();
       }
     };
@@ -300,6 +305,41 @@ const copy = isEnglish
     form.dataset.labelIdle = dictionary.submitIdle;
     form.dataset.labelSending = dictionary.submitSending;
     setSending(false);
+
+    const renderCaptcha = () => {
+      if (!requiresCaptcha || form.dataset.turnstileRendered === "true") {
+        return;
+      }
+      if (!captchaElement || !window.turnstile?.render) {
+        return;
+      }
+
+      const sitekey = captchaElement.getAttribute("data-sitekey") || "";
+      if (!sitekey) return;
+
+      const widgetId = window.turnstile.render(captchaElement, {
+        sitekey,
+        callback: () => {
+          setFieldError("captcha", "");
+        },
+        "expired-callback": () => {
+          clearCaptchaToken();
+          setFieldError("captcha", dictionary.captcha);
+        },
+        "error-callback": () => {
+          clearCaptchaToken();
+          setFieldError("captcha", dictionary.captcha);
+        },
+      });
+
+      if (typeof widgetId === "string") {
+        form.dataset.turnstileWidgetId = widgetId;
+      }
+      form.dataset.turnstileRendered = "true";
+    };
+
+    renderCaptchaCallbacks.push(renderCaptcha);
+    renderCaptcha();
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -406,6 +446,16 @@ const copy = isEnglish
     });
   }
 </script>
+
+{
+  hasTurnstile && (
+    <script
+      src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onContactTurnstileLoad"
+      async
+      defer
+    />
+  )
+}
 
 <style>
   .contact-form {
