@@ -32,6 +32,7 @@ type ResponsePayload = {
     | "rate_limited"
     | "configuration_error"
     | "captcha_verification_failed"
+    | "rate_limit_failed"
     | "email_send_failed"
     | "internal_error"
     | "method_not_allowed";
@@ -42,6 +43,30 @@ type ResponsePayload = {
 type RateLimitResult =
   | { success: true }
   | { success: false; retryAfterSeconds?: number };
+
+type RuntimeConfig = {
+  resendApiKey: string;
+  contactToEmail: string;
+  contactFromEmail: string;
+  turnstileSecret: string;
+  upstashUrl: string;
+  upstashToken: string;
+};
+
+type TurnstileVerificationResult = {
+  success: boolean;
+  errorCodes: string[];
+  hostname?: string;
+};
+
+const runtimeConfigEnvNames: Record<keyof RuntimeConfig, string> = {
+  resendApiKey: "RESEND_API_KEY",
+  contactToEmail: "CONTACT_TO_EMAIL",
+  contactFromEmail: "CONTACT_FROM_EMAIL",
+  turnstileSecret: "TURNSTILE_SECRET_KEY",
+  upstashUrl: "UPSTASH_REDIS_REST_URL",
+  upstashToken: "UPSTASH_REDIS_REST_TOKEN"
+};
 
 const validationMessages = {
   de: {
@@ -81,6 +106,63 @@ const json = (
 const normalizeValue = (value: FormDataEntryValue | null): string =>
   typeof value === "string" ? value.trim() : "";
 
+const normalizeEnvValue = (value: string | undefined): string => {
+  const trimmed = value?.trim() ?? "";
+  const isQuoted =
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"));
+
+  return isQuoted ? trimmed.slice(1, -1).trim() : trimmed;
+};
+
+const getRuntimeConfig = (): RuntimeConfig => ({
+  resendApiKey: normalizeEnvValue(import.meta.env.RESEND_API_KEY),
+  contactToEmail: normalizeEnvValue(import.meta.env.CONTACT_TO_EMAIL),
+  contactFromEmail: normalizeEnvValue(import.meta.env.CONTACT_FROM_EMAIL),
+  turnstileSecret: normalizeEnvValue(import.meta.env.TURNSTILE_SECRET_KEY),
+  upstashUrl: normalizeEnvValue(import.meta.env.UPSTASH_REDIS_REST_URL),
+  upstashToken: normalizeEnvValue(import.meta.env.UPSTASH_REDIS_REST_TOKEN)
+});
+
+const getMissingConfigKeys = (config: RuntimeConfig): string[] =>
+  Object.entries(config)
+    .filter(([, value]) => !value)
+    .map(([key]) => runtimeConfigEnvNames[key as keyof RuntimeConfig]);
+
+const isValidHttpUrl = (value: string): boolean => {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
+};
+
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+};
+
+const logContactError = (stage: string, error: unknown): void => {
+  console.error(`[contact] ${stage}: ${getErrorMessage(error)}`);
+};
+
 const getRetryAfterSeconds = (reset?: number): number | undefined => {
   if (typeof reset !== "number") {
     return undefined;
@@ -92,6 +174,9 @@ const getRetryAfterSeconds = (reset?: number): number | undefined => {
 };
 
 const getClientIp = (request: Request): string => {
+  const cfConnectingIp = request.headers.get("cf-connecting-ip")?.trim();
+  if (cfConnectingIp) return cfConnectingIp;
+
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
     const firstIp = forwarded.split(",")[0]?.trim();
@@ -186,27 +271,46 @@ const verifyTurnstile = async (
   secret: string,
   token: string,
   ip: string
-): Promise<boolean> => {
+): Promise<TurnstileVerificationResult> => {
   const body = new URLSearchParams({
     secret,
-    response: token,
-    remoteip: ip
+    response: token
   });
+
+  if (ip !== "unknown") {
+    body.set("remoteip", ip);
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
 
   const response = await fetch(
     "https://challenges.cloudflare.com/turnstile/v0/siteverify",
     {
       method: "POST",
-      body
+      body,
+      signal: controller.signal
     }
-  );
+  ).finally(() => {
+    clearTimeout(timeout);
+  });
 
   if (!response.ok) {
     throw new Error(`Turnstile verification failed with status ${response.status}`);
   }
 
   const result = await response.json();
-  return result?.success === true;
+  const errorCodes = Array.isArray(result?.["error-codes"])
+    ? result["error-codes"].filter(
+        (code: unknown): code is string => typeof code === "string"
+      )
+    : [];
+
+  return {
+    success: result?.success === true,
+    errorCodes,
+    hostname: typeof result?.hostname === "string" ? result.hostname : undefined
+  };
 };
 
 const escapeHtml = (value: string): string =>
@@ -421,21 +525,23 @@ export const POST: APIRoute = async ({ request, url }) => {
       });
     }
 
-    const resendApiKey = import.meta.env.RESEND_API_KEY;
-    const contactToEmail = import.meta.env.CONTACT_TO_EMAIL;
-    const contactFromEmail = import.meta.env.CONTACT_FROM_EMAIL;
-    const turnstileSecret = import.meta.env.TURNSTILE_SECRET_KEY;
-    const upstashUrl = import.meta.env.UPSTASH_REDIS_REST_URL;
-    const upstashToken = import.meta.env.UPSTASH_REDIS_REST_TOKEN;
+    const config = getRuntimeConfig();
+    const missingConfigKeys = getMissingConfigKeys(config);
 
-    if (
-      !resendApiKey ||
-      !contactToEmail ||
-      !contactFromEmail ||
-      !turnstileSecret ||
-      !upstashUrl ||
-      !upstashToken
-    ) {
+    if (missingConfigKeys.length > 0) {
+      console.error(
+        `[contact] Missing runtime configuration: ${missingConfigKeys.join(", ")}`
+      );
+
+      return json(500, {
+        ok: false,
+        error: "configuration_error"
+      });
+    }
+
+    if (!isValidHttpUrl(config.upstashUrl)) {
+      console.error("[contact] Invalid Upstash Redis REST URL configuration");
+
       return json(500, {
         ok: false,
         error: "configuration_error"
@@ -443,21 +549,29 @@ export const POST: APIRoute = async ({ request, url }) => {
     }
 
     const clientIp = getClientIp(request);
-    let captchaValid = false;
+    let captchaVerification: TurnstileVerificationResult;
     try {
-      captchaValid = await verifyTurnstile(
-        turnstileSecret,
+      captchaVerification = await verifyTurnstile(
+        config.turnstileSecret,
         parsed.data.turnstileToken,
         clientIp
       );
-    } catch {
+    } catch (error) {
+      logContactError("Turnstile verification request failed", error);
+
       return json(500, {
         ok: false,
         error: "captcha_verification_failed"
       });
     }
 
-    if (!captchaValid) {
+    if (!captchaVerification.success) {
+      console.warn(
+        `[contact] Turnstile rejected token: ${
+          captchaVerification.errorCodes.join(", ") || "no error code"
+        }`
+      );
+
       const messages = validationMessages[locale];
 
       return json(403, {
@@ -469,10 +583,20 @@ export const POST: APIRoute = async ({ request, url }) => {
       });
     }
 
-    const limitResult = await runRateLimit(clientIp, {
-      upstashUrl,
-      upstashToken
-    });
+    let limitResult: RateLimitResult;
+    try {
+      limitResult = await runRateLimit(clientIp, {
+        upstashUrl: config.upstashUrl,
+        upstashToken: config.upstashToken
+      });
+    } catch (error) {
+      logContactError("Rate limit check failed", error);
+
+      return json(500, {
+        ok: false,
+        error: "rate_limit_failed"
+      });
+    }
 
     if (!limitResult.success) {
       const retryAfterHeaders =
@@ -486,7 +610,7 @@ export const POST: APIRoute = async ({ request, url }) => {
       }, retryAfterHeaders);
     }
 
-    const resend = new Resend(resendApiKey);
+    const resend = new Resend(config.resendApiKey);
     const preparedEmail = buildEmailPayload({
       locale,
       name: parsed.data.name ?? "",
@@ -497,16 +621,30 @@ export const POST: APIRoute = async ({ request, url }) => {
       sentAt: new Date().toISOString()
     });
 
-    const response = await resend.emails.send({
-      from: contactFromEmail,
-      to: [contactToEmail],
-      replyTo: parsed.data.email ? [parsed.data.email] : undefined,
-      subject: preparedEmail.subject,
-      text: preparedEmail.text,
-      html: preparedEmail.html
-    });
+    let response: Awaited<ReturnType<Resend["emails"]["send"]>>;
+    try {
+      response = await resend.emails.send({
+        from: config.contactFromEmail,
+        to: [config.contactToEmail],
+        replyTo: parsed.data.email ? [parsed.data.email] : undefined,
+        subject: preparedEmail.subject,
+        text: preparedEmail.text,
+        html: preparedEmail.html
+      });
+    } catch (error) {
+      logContactError("Email send request failed", error);
+
+      return json(500, {
+        ok: false,
+        error: "email_send_failed"
+      });
+    }
 
     if (response.error) {
+      console.error(
+        `[contact] Email service rejected request: ${getErrorMessage(response.error)}`
+      );
+
       return json(500, {
         ok: false,
         error: "email_send_failed"
@@ -514,7 +652,9 @@ export const POST: APIRoute = async ({ request, url }) => {
     }
 
     return json(200, { ok: true });
-  } catch {
+  } catch (error) {
+    logContactError("Unhandled contact route failure", error);
+
     return json(500, {
       ok: false,
       error: "internal_error"
